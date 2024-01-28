@@ -31,7 +31,7 @@ def my_view(request):
     print(request_dict)
     # 设置 cookie
     response = HttpResponse()
-    response.set_cookie('login', '123321123321')
+    response.set_cookie('login', '123321123321', secure=False, httponly=False)
     print(response.cookies)
     # 返回响应
     return response

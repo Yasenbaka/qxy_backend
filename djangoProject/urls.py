@@ -19,11 +19,16 @@ from django.urls import path
 
 
 from api import views as api_views
-from App import views as app_views
+from wx_users import views as wx_users_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', api_views.get),
-    path('api/name/', api_views.get_name),
-    path('tologin/', api_views.my_view),
+
+    # api接口
+    path('api/v1/page_main', api_views.page_main),
+    path('api/v1/exchange_openid', api_views.exchange_openid),
+
+    # wx_users微信用户
+    path('wx_users/v1/register', wx_users_views.register_user),
+    path('wx_users/v1/login', wx_users_views.login_user),
 ]

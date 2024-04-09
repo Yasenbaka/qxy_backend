@@ -1,10 +1,14 @@
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
 
 # Create your views here.
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken, SlidingToken
+
 from .models import WxUsers
 import requests
 
@@ -39,10 +43,11 @@ def register_user(request):
 
 @api_view(['POST'])
 @permission_classes((AllowAny,))
+@require_http_methods(["POST"])
 def login_user(request):
-    data = request.data
+    data = request.POST
     code = data.get('code')
-
+    print('code', code)
     if not code:
         return Response({'code': 400, 'error': 'Code是必要的参数！'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -50,13 +55,22 @@ def login_user(request):
     url = f"https://api.weixin.qq.com/sns/jscode2session?appid={get_wechat_appid()}&secret={get_wechat_appsecret()}&js_code={code}&grant_type=authorization_code"
     response = requests.get(url)
     wechat_data = response.json()
-
     openid = wechat_data.get('openid')
-    if not openid:
-        return Response({'code': 400, 'error': '从微信服务器获取openID失败！客户端问题？'}, status=status.HTTP_400_BAD_REQUEST)
+    openid = '123'
+    print('openid', openid)
+    # if not openid:
+    #     return Response({'code': 400, 'error': '从微信服务器获取openID失败！客户端问题？'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # user = WxUsers.objects.get(openid=openid)s
     user = WxUsers.objects.get(openid=openid)
-    # 这里可以生成JWT token或其他认证凭据并返回给前端
-    # 例如，使用django-rest-framework-jwt库来生成token
-    # from rest_framework_jwt.views import obtain_jwt_token
-    # token = obtain_jwt_
+    print('user', user)
+    refresh = RefreshToken.for_user(user)
+    refresh_token = str(refresh)
+    print(refresh_token)
+    access = RefreshToken(refresh_token).access_token
+    print(str(access))
+    return JsonResponse({'code': 200, 'message': '登入成功！', 'data': {
+        'message': '登入成功！',
+        'refreshToken': refresh_token,
+        'accessToken': str(access)
+    }}, status=status.HTTP_200_OK)

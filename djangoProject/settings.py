@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'api',
     'wx_users',
+    'transaction',
 ]
 
 MIDDLEWARE = [

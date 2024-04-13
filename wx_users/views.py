@@ -1,3 +1,6 @@
+import time
+
+import jwt
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
@@ -9,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, SlidingToken
 
-from .models import WxUsers
+from .models import WxUsers, TokenLibrary
 import requests
 
 # 假设你有一个从环境变量或配置文件中获取微信AppID和AppSecret的函数
@@ -17,6 +20,10 @@ from django.conf import settings
 
 get_wechat_appid = lambda: settings.WECHAT_APPID
 get_wechat_appsecret = lambda: settings.WECHAT_APPSECRET
+get_jwt_alg = lambda: settings.SIMPLE_JWT['ALGORITHM']
+get_jwt_key = lambda: settings.SIMPLE_JWT['SIGNING_KEY']
+get_access_token_lifetime = lambda: settings.TIME_JWT['ACCESS_TOKEN_LIFETIME']
+get_refresh_token_lifetime = lambda: settings.TIME_JWT['REFRESH_TOKEN_LIFETIME']
 
 
 @api_view(['POST'])
@@ -56,21 +63,44 @@ def login_user(request):
     response = requests.get(url)
     wechat_data = response.json()
     openid = wechat_data.get('openid')
-    openid = '123'
-    print('openid', openid)
     # if not openid:
     #     return Response({'code': 400, 'error': '从微信服务器获取openID失败！客户端问题？'}, status=status.HTTP_400_BAD_REQUEST)
-
-    # user = WxUsers.objects.get(openid=openid)s
-    user = WxUsers.objects.get(openid=openid)
-    print('user', user)
-    refresh = RefreshToken.for_user(user)
-    refresh_token = str(refresh)
-    print(refresh_token)
-    access = RefreshToken(refresh_token).access_token
-    print(str(access))
-    return JsonResponse({'code': 200, 'message': '登入成功！', 'data': {
+    openid = '123'
+    print('openid', openid)
+    token_header = {'typ': 'JWT', 'alg': get_jwt_alg}
+    token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime()}
+    access_token = jwt.encode(headers=token_header, payload=token_payload, key=get_jwt_key(), algorithm=get_jwt_alg())
+    refresh_token = jwt.encode(headers=token_header, payload={
+        'access_token': access_token,
+        'exp': int(time.time()) + get_refresh_token_lifetime()
+    }, key=get_jwt_key, algorithm=get_jwt_alg)
+    return JsonResponse({
+        'code': 200,
         'message': '登入成功！',
-        'refreshToken': refresh_token,
-        'accessToken': str(access)
-    }}, status=status.HTTP_200_OK)
+        'data': {
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+        }
+    })
+    # if not openid:
+    #     return Response({'code': 400, 'error': '从微信服务器获取openID失败！客户端问题？'}, status=status.HTTP_400_BAD_REQUEST)
+    # user = WxUsers.objects.get(openid=openid)
+    # user = WxUsers.objects.get(openid=openid)
+    # print('user', user)
+    # refresh = RefreshToken.for_user(user)
+    # refresh_token = str(refresh)
+    # access = RefreshToken(refresh_token).access_token
+    # access_token = str(access)
+    # try:
+    #     user_token_library = TokenLibrary.objects.get(openid=openid)
+    # except TokenLibrary.DoesNotExist:
+    #     user_token_library = TokenLibrary(openid=openid, access_token=access_token, refresh_token=refresh_token, expiration=7, safe_level=5)
+    #     user_token_library.save()
+    # else:
+    #     user_token_library.access_toke, user_token_library.refresh_token = access_token, refresh_token
+    #     user_token_library.save()
+    # return JsonResponse({'code': 200, 'message': '登入成功！', 'data': {
+    #     'message': '登入成功！',
+    #     'refreshToken': refresh_token,
+    #     'accessToken': str(access)
+    # }}, status=status.HTTP_200_OK)

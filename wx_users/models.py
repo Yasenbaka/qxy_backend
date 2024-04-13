@@ -14,7 +14,8 @@ class WxUsers(models.Model):
 
 class TokenLibrary(models.Model):
     openid = models.CharField(max_length=255, unique=True)
-    token = models.TextField()
+    refresh_token = models.TextField()
+    access_token = models.TextField()
     expiration = models.BigIntegerField()
     safe_level = models.IntegerField(default=5)
 

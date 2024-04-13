@@ -24,9 +24,13 @@ from wx_users import views as wx_users_views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    # test api
+    path('api/test', api_views.test_token),
+
     # api接口
     path('api/v1/page_main', api_views.page_main),
     path('api/v1/exchange_openid', api_views.exchange_openid),
+    path('api/v1/exchange_token', api_views.exchange_token),
 
     # wx_users微信用户
     path('wx_users/v1/register', wx_users_views.register_user),

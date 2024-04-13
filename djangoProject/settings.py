@@ -48,19 +48,34 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         # ...
     ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        # ...
+        'rest_framework.permissions.IsAuthenticated',
+        # ...
+    ],
 }
+
+
+import time
+
+TIME_JWT = {
+    'REFRESH_TOKEN_LIFETIME': 3600 * 24 * 30,
+    'ACCESS_TOKEN_LIFETIME': 3600 * 24 * 1
+}
+
 
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': 'qxy20240409',
     'VERIFYING_KEY': None,
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    # 'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_TYPES': (),
     'USER_ID_FIELD': 'openid',
     'USER_ID_CLAIM': 'openid',
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
@@ -110,7 +125,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         # 'NAME': BASE_DIR / 'db.sqlite3',
-        'NAME': 'nepu_test',
+        'NAME': 'qxy',
         'USER': 'root',
         'PASSWORD': 'chajimysql2001',
         'HOST': 'chaji.yasenbaka.work',

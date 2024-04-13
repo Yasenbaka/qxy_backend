@@ -1,15 +1,25 @@
 import json
+import time
+from datetime import datetime, timedelta
 
+import jwt
 import requests
 from django.http import JsonResponse, HttpResponse
+from jwt import decode, encode
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from api.models import MainPageImages
 from django.conf import settings
 
 get_wechat_appid = lambda: settings.WECHAT_APPID
 get_wechat_appsecret = lambda: settings.WECHAT_APPSECRET
+get_jwt_alg = lambda: settings.SIMPLE_JWT['ALGORITHM']
+get_jwt_key = lambda: settings.SIMPLE_JWT['SIGNING_KEY']
+get_access_token_lifetime = lambda: settings.TIME_JWT['ACCESS_TOKEN_LIFETIME']
+get_refresh_token_lifetime = lambda: settings.TIME_JWT['REFRESH_TOKEN_LIFETIME']
 
 
 def get(request):
@@ -82,6 +92,92 @@ def exchange_openid(request):
             'openid': openid
         }
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes((AllowAny,))
+def exchange_token(request):
+    if request.method == 'POST':
+        access_token = request.data.get('access_token')
+        refresh_token = request.data.get('refresh_token')
+        try:
+            decode_refresh_token = jwt.decode(refresh_token, key=get_jwt_key, algorithms=[get_jwt_alg])
+        except jwt.exceptions.DecodeError as e:
+            # 如果令牌无效或签名不匹配，将会抛出DecodeError异常
+            print(f"JWT解码失败: {e}")
+        except jwt.exceptions.ExpiredSignatureError:
+            # 如果令牌已过期，将会抛出ExpiredSignatureError异常
+            print("JWT已过期")
+        except jwt.exceptions.InvalidTokenError:
+            # 如果令牌格式不正确或包含无效声明，将会抛出InvalidTokenError异常
+            print("有老六传无效的JWT")
+        except jwt.PyJWTError:
+            print("refresh token 致命错误！")
+        else:
+            get_refresh_decode_access_token = decode_refresh_token['access_token']
+            if get_refresh_decode_access_token != access_token:
+                return Response()
+            decode_access_token = jwt.decode(access_token, key=get_jwt_key, algorithms=[get_jwt_alg])
+            openid = decode_access_token['openid']
+            token_header = {'typ': 'JWT', 'alg': get_jwt_alg}
+            token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime()}
+            new_access_token = jwt.encode(headers=token_header,
+                                          payload=token_payload,
+                                          key=get_jwt_key,
+                                          algorithm=get_jwt_alg)
+            new_refresh_token = jwt.encode(headers=token_header,
+                                           payload={
+                                               'access_token': new_access_token,
+                                               'exp': decode_refresh_token['exp']
+                                           }, key=get_jwt_key, algorithm=get_jwt_alg)
+            return JsonResponse({
+                'code': 200,
+                'message': '兑换成功！',
+                'data': {
+                    'access_token': new_access_token,
+                    'refresh_token': new_refresh_token
+                }
+            })
+
+
+def test_token(request):
+    access_token = request.headers.get('Authorization')
+    print(access_token)
+    try:
+        # 解码并验证JWT
+        decoded_token = decode(access_token,
+                               signing_key=settings.SIMPLE_JWT['SIGNING_KEY'],
+                               algorithms=[settings.SIMPLE_JWT['ALGORITHM']])
+        print(decoded_token)
+        print('decoded_token', decoded_token)
+    except jwt.exceptions.DecodeError as e:
+        # 如果令牌无效或签名不匹配，将会抛出DecodeError异常
+        print(f"JWT解码失败: {e}")
+    except jwt.exceptions.ExpiredSignatureError:
+        # 如果令牌已过期，将会抛出ExpiredSignatureError异常
+        print("JWT已过期")
+    except jwt.exceptions.InvalidTokenError:
+        # 如果令牌格式不正确或包含无效声明，将会抛出InvalidTokenError异常
+        print("有老六传无效的JWT")
+    try:
+
+        # 获取令牌的过期时间
+        exp = decoded_token['exp']
+        print('exp', exp)
+
+        # 将过期时间从Unix时间戳转换为datetime对象
+        expiration_datetime = datetime.utcfromtimestamp(exp)
+        print('expiration_datetime', expiration_datetime)
+
+        # 获取当前时间并加上一个小的缓冲时间（可选）
+        now = datetime.utcnow()
+        print('now', now)
+
+        # 检查令牌是否过期
+        return JsonResponse({'message': expiration_datetime < now})
+    except (jwt.exceptions.DecodeError, KeyError):
+        # 如果令牌无效或缺少必要的字段，则认为令牌已过期
+        return JsonResponse({'message': True})
 
 
 def page_main(request):

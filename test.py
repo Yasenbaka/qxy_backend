@@ -4,6 +4,9 @@ import jwt
 
 from datetime import timedelta
 
+from django.conf import settings
+
+get_access_token_lifetime = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME']
 
 def get_timedelta():
     time_now = timedelta(days=1)
@@ -45,18 +48,19 @@ class MyJwt(object):
 
 
 if __name__ == '__main__':
-    get_timedelta()
-    # # 用户字典
-    # payload = {'user_id': 1, 'username': 'admin'}
-    #
-    # # 初始化类
-    # mj = MyJwt()
-    #
-    # # 生成token，加密字典
-    # token = mj.encode_token(payload)
-    # print(f"token: {token}")
-    # # 解析token，解析字典
-    # time.sleep(5)
-    # token += bytes(1)
-    # pyload = mj.decode_token(token)
-    # print(f"pyload: {pyload}")
+    # print(get_access_token_lifetime)
+    # get_timedelta()
+    # 用户字典
+    payload = {'user_id': 1, 'username': 'admin'}
+
+    # 初始化类
+    mj = MyJwt()
+
+    # 生成token，加密字典
+    token = mj.encode_token(payload)
+    print(f"token: {token}")
+    # 解析token，解析字典
+    time.sleep(5)
+    token += bytes(1)
+    pyload = mj.decode_token(token)
+    print(f"pyload: {pyload}")

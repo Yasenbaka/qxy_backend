@@ -18,12 +18,12 @@ import requests
 # 假设你有一个从环境变量或配置文件中获取微信AppID和AppSecret的函数
 from django.conf import settings
 
-get_wechat_appid = lambda: settings.WECHAT_APPID
-get_wechat_appsecret = lambda: settings.WECHAT_APPSECRET
-get_jwt_alg = lambda: settings.SIMPLE_JWT['ALGORITHM']
-get_jwt_key = lambda: settings.SIMPLE_JWT['SIGNING_KEY']
-get_access_token_lifetime = lambda: settings.TIME_JWT['ACCESS_TOKEN_LIFETIME']
-get_refresh_token_lifetime = lambda: settings.TIME_JWT['REFRESH_TOKEN_LIFETIME']
+get_wechat_appid = settings.WECHAT_APPID
+get_wechat_appsecret = settings.WECHAT_APPSECRET
+get_jwt_alg = settings.SIMPLE_JWT['ALGORITHM']
+get_jwt_key = settings.SIMPLE_JWT['SIGNING_KEY']
+get_access_token_lifetime = settings.TIME_JWT['ACCESS_TOKEN_LIFETIME']
+get_refresh_token_lifetime = settings.TIME_JWT['REFRESH_TOKEN_LIFETIME']
 
 
 @api_view(['POST'])
@@ -59,7 +59,7 @@ def login_user(request):
         return Response({'code': 400, 'error': 'Code是必要的参数！'}, status=status.HTTP_400_BAD_REQUEST)
 
         # 使用code向微信服务器请求session_key和openid
-    url = f"https://api.weixin.qq.com/sns/jscode2session?appid={get_wechat_appid()}&secret={get_wechat_appsecret()}&js_code={code}&grant_type=authorization_code"
+    url = f"https://api.weixin.qq.com/sns/jscode2session?appid={get_wechat_appid}&secret={get_wechat_appsecret}&js_code={code}&grant_type=authorization_code"
     response = requests.get(url)
     wechat_data = response.json()
     openid = wechat_data.get('openid')
@@ -68,18 +68,18 @@ def login_user(request):
     openid = '123'
     print('openid', openid)
     token_header = {'typ': 'JWT', 'alg': get_jwt_alg}
-    token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime()}
-    access_token = jwt.encode(headers=token_header, payload=token_payload, key=get_jwt_key(), algorithm=get_jwt_alg())
+    token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime}
+    access_token = jwt.encode(headers=token_header, payload=token_payload, key=get_jwt_key, algorithm=get_jwt_alg)
     refresh_token = jwt.encode(headers=token_header, payload={
-        'access_token': access_token,
-        'exp': int(time.time()) + get_refresh_token_lifetime()
+        'access_token': access_token.decode('utf-8'),
+        'exp': int(time.time()) + get_refresh_token_lifetime
     }, key=get_jwt_key, algorithm=get_jwt_alg)
     return JsonResponse({
         'code': 200,
         'message': '登入成功！',
         'data': {
-            'access_token': access_token,
-            'refresh_token': refresh_token,
+            'access_token': access_token.decode('utf-8'),
+            'refresh_token': refresh_token.decode('utf-8'),
         }
     })
     # if not openid:

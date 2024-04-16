@@ -60,15 +60,18 @@ import time
 
 TIME_JWT = {
     'REFRESH_TOKEN_LIFETIME': 3600 * 24 * 30,
-    'ACCESS_TOKEN_LIFETIME': 3600 * 24 * 1
+    'ACCESS_TOKEN_LIFETIME': 5
+    # 'ACCESS_TOKEN_LIFETIME': 3600 * 24 * 1
 }
 
 
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    # 'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': 3600 * 24 * 1,
+    # 'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'REFRESH_TOKEN_LIFETIME': 3600 * 24 * 30,
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',

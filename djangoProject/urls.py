@@ -15,22 +15,25 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-
+from django.urls import path, include
 
 from api import views as api_views
+from api import urls
 from wx_users import views as wx_users_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # test api
-    path('api/test', api_views.test_token),
+    # # test api
+    # path('api/test', api_views.test_token),
+    #
+    # # api接口
+    # path('api/v1/page_main', api_views.page_main),
+    # path('api/v1/exchange_openid', api_views.exchange_openid),
+    # path('api/v1/exchange_token', api_views.exchange_token),
+    # path('api/v1/get_com', api_views.exchange_token),
 
-    # api接口
-    path('api/v1/page_main', api_views.page_main),
-    path('api/v1/exchange_openid', api_views.exchange_openid),
-    path('api/v1/exchange_token', api_views.exchange_token),
+    path('api/', include('api.urls')),
 
     # wx_users微信用户
     path('wx_users/v1/register', wx_users_views.register_user),

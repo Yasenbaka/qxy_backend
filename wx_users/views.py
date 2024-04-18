@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, SlidingToken
 
-from .models import WxUsers, TokenLibrary
+from .models import WxUsers
 import requests
 
 # 假设你有一个从环境变量或配置文件中获取微信AppID和AppSecret的函数
@@ -52,8 +52,7 @@ def register_user(request):
 @permission_classes((AllowAny,))
 @require_http_methods(["POST"])
 def login_user(request):
-    data = request.POST
-    code = data.get('code')
+    code = request.POST.get('code')
     print('code', code)
     if not code:
         return Response({'code': 400, 'error': 'Code是必要的参数！'}, status=status.HTTP_400_BAD_REQUEST)
@@ -71,15 +70,15 @@ def login_user(request):
     token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime}
     access_token = jwt.encode(headers=token_header, payload=token_payload, key=get_jwt_key, algorithm=get_jwt_alg)
     refresh_token = jwt.encode(headers=token_header, payload={
-        'access_token': access_token.decode('utf-8'),
+        'access_token': access_token,
         'exp': int(time.time()) + get_refresh_token_lifetime
     }, key=get_jwt_key, algorithm=get_jwt_alg)
     return JsonResponse({
         'code': 200,
         'message': '登入成功！',
         'data': {
-            'access_token': access_token.decode('utf-8'),
-            'refresh_token': refresh_token.decode('utf-8'),
+            'access_token': access_token,
+            'refresh_token': refresh_token,
         }
     })
     # if not openid:

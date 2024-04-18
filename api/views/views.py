@@ -137,21 +137,22 @@ def exchange_token(request):
                 'code': 400,
                 'error': '有老六篡改了请求令牌！Access token check discrepancy!'
             }, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            url = f"https://api.weixin.qq.com/sns/jscode2session?appid={get_wechat_appid}&secret={get_wechat_appsecret}&js_code={code}&grant_type=authorization_code"
-            response = requests.get(url)
-            wechat_data = response.json()
-            openid = wechat_data.get('openid')
-            if not openid:
-                return JsonResponse({
-                    'code': 400,
-                    'error': '对于当前资源状态，请求无法完成！'
-                })
-        except:
-            return JsonResponse({
-                'code': 400,
-                'error': '从微信服务器获取openID失败！客户端问题？'
-            })
+        # try:
+        #     url = f"https://api.weixin.qq.com/sns/jscode2session?appid={get_wechat_appid}&secret={get_wechat_appsecret}&js_code={code}&grant_type=authorization_code"
+        #     response = requests.get(url)
+        #     wechat_data = response.json()
+        #     openid = wechat_data.get('openid')
+        #     if not openid:
+        #         return JsonResponse({
+        #             'code': 400,
+        #             'error': '对于当前资源状态，请求无法完成！'
+        #         })
+        # except:
+        #     return JsonResponse({
+        #         'code': 400,
+        #         'error': '从微信服务器获取openID失败！客户端问题？'
+        #     })
+        openid = 123
         token_header = {'typ': 'JWT', 'alg': get_jwt_alg}
         token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime}
         new_access_token = jwt.encode(headers=token_header,
@@ -161,7 +162,7 @@ def exchange_token(request):
         print('新的access_token生成')
         new_refresh_token = jwt.encode(headers=token_header,
                                        payload={
-                                           'access_token': new_access_token.decode('utf-8'),
+                                           'access_token': new_access_token,
                                            'exp': decode_refresh_token['exp']
                                        }, key=get_jwt_key, algorithm=get_jwt_alg)
         print('新的refresh_token生成')
@@ -169,8 +170,8 @@ def exchange_token(request):
             'code': 200,
             'message': '兑换成功！',
             'data': {
-                'access_token': new_access_token.decode('utf-8'),
-                'refresh_token': new_refresh_token.decode('utf-8')
+                'access_token': new_access_token,
+                'refresh_token': new_refresh_token
             }
         })
 

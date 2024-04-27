@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import json
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -124,16 +124,18 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
+from djangoProject.mysql_details import get_mysql_details
+
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         # 'NAME': BASE_DIR / 'db.sqlite3',
-        'NAME': 'qxy',
-        'USER': 'root',
-        'PASSWORD': 'chajimysql2001',
-        'HOST': 'chaji.yasenbaka.work',
-        'PORT': '3306'
+        'NAME': get_mysql_details()['database'],
+        'USER': get_mysql_details()['username'],
+        'PASSWORD': get_mysql_details()['password'],
+        'HOST': get_mysql_details()['url'],
+        'PORT': get_mysql_details()['port']
     }
 }
 

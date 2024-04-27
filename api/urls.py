@@ -5,7 +5,7 @@ from .views import commodity, views
 urlpatterns = [
     path('v1/get_com', commodity.get_com),
     # test api
-    path('test', views.test_token),
+    path('test', views.test_token_method),
 
     # api接口
     path('v1/page_main', views.page_main),

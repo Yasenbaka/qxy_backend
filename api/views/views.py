@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import jwt
 import requests
 from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from jwt import decode, encode
 from rest_framework import status
 from rest_framework.response import Response
@@ -219,6 +221,24 @@ def test_token(request):
     # except (jwt.exceptions.DecodeError, KeyError):
     #     # 如果令牌无效或缺少必要的字段，则认为令牌已过期
     #     return JsonResponse({'message': True})
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def test_token_method(request):
+    token = request.POST.get('token')
+    from api.handle_token import handle_token
+    get_token_re = handle_token(token)
+    if get_token_re['judge']:
+        return JsonResponse({
+            'code': 200,
+            'message': get_token_re['message']
+        })
+    else:
+        return JsonResponse({
+            'code': 400,
+            'message': get_token_re['message']
+        })
 
 
 def page_main(request):

@@ -19,3 +19,11 @@ class Commodity(models.Model):
     com_is_active = models.BooleanField(default=True)
     com_is_preferential = models.BooleanField(default=True)
     com_is_coupon = models.BooleanField(default=True)
+
+
+class OrderForm(models.Model):
+    openid = models.CharField(max_length=255, unique=True)
+    ongoing_order = models.JSONField()
+    service_order = models.JSONField()
+    closed_order = models.JSONField()
+

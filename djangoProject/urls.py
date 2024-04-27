@@ -22,7 +22,7 @@ from api import urls
 from wx_users import views as wx_users_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin_users/', admin.site.urls),
 
     # # test api
     # path('api/test', api_views.test_token),

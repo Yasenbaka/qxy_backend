@@ -70,15 +70,18 @@ def login_user(request):
     token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime}
     access_token = jwt.encode(headers=token_header, payload=token_payload, key=get_jwt_key, algorithm=get_jwt_alg)
     refresh_token = jwt.encode(headers=token_header, payload={
-        'access_token': access_token.decode('utf-8'),
-        'exp': int(time.time()) + get_refresh_token_lifetime
+        # 'type': 'refresh_token',
+        'access_token': access_token,
+        'exp': int(time.time()) + get_refresh_token_lifetime,
+        'rule': 'admin',
+        'account': 10086
     }, key=get_jwt_key, algorithm=get_jwt_alg)
     return JsonResponse({
         'code': 200,
         'message': '登入成功！',
         'data': {
-            'access_token': access_token.decode('utf-8'),
-            'refresh_token': refresh_token.decode('utf-8'),
+            'access_token': access_token,
+            'refresh_token': refresh_token,
         }
     })
     # if not openid:

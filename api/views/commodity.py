@@ -1,13 +1,20 @@
-import jwt
+import json
+import random
+import time
+
 from django.http import JsonResponse
+from django.utils.datastructures import MultiValueDictKeyError
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from rest_framework import status
-from rest_framework.decorators import api_view
 
 from api.models import Commodity
-from djangoProject import settings
+from api.handle_token import handle_token
+from admin_users.models import AdminUser
 
 
+@require_http_methods(['GET'])
+@csrf_exempt
 def get_com(request):
     try:
         unique_id = int(request.GET['unique_id'])
@@ -61,35 +68,58 @@ def get_com(request):
 
 
 @require_http_methods(['POST'])
+@csrf_exempt
 def add_com(request):
     token = request.headers.get('Authorization')
-    if not token:
-        return JsonResponse({'code': 403, 'error': '未登录请求！'}, status=status.HTTP_403_FORBIDDEN)
-    try:
-        decode_token = jwt.decode(token, settings.SIMPLE_JWT['SIGNING_KEY'], algorithms=[settings.SIMPLE_JWT['ALGORITHM']])
-    except jwt.exceptions.DecodeError as e:
-        # 如果令牌无效或签名不匹配，将会抛出DecodeError异常
-        print(f"JWT解码失败: {e}")
+    get_token_re = handle_token(token)
+    if not get_token_re['judge']:
         return JsonResponse({
-            'code': 403,
-            'error': '管理员令牌解码失败！Admin token decode error!'
+            'code': 10112,
+            'error': get_token_re['message']
         }, status=status.HTTP_403_FORBIDDEN)
-    except jwt.exceptions.ExpiredSignatureError:
-        # 如果令牌已过期，将会抛出ExpiredSignatureError异常
-        print("JWT已过期")
+    try:
+        model_commodity = Commodity()
+        model_commodity.unique_id = (int(time.time()) +
+                                     len(request.POST['name']) +
+                                     len(request.POST['introduce']) +
+                                     random.randint(500, 10000))
+        (model_commodity.com_name,
+         model_commodity.com_introduce,
+         model_commodity.com_price,
+         model_commodity.com_reserve,
+         model_commodity.com_banners,
+         model_commodity.com_introduction_pictures,
+         model_commodity.com_is_active,
+         model_commodity.com_is_preferential,
+         model_commodity.com_is_coupon) = (request.POST['name'],
+                                           request.POST['introduce'],
+                                           request.POST['price'],
+                                           request.POST['reserve'],
+                                           json.loads(request.POST['banners']),
+                                           json.loads(request.POST['introduction_pictures']),
+                                           request.POST['is_active'],
+                                           request.POST['is_preferential'],
+                                           request.POST['is_coupon'])
+    except MultiValueDictKeyError:
         return JsonResponse({
-            'code': 400,
-            'error': '管理员令牌过期！Admin token expired error!'
+            'code': 20110,
+            'message': '商品添加失败！缺少必要的参数！'
         }, status=status.HTTP_400_BAD_REQUEST)
-    except jwt.exceptions.InvalidTokenError:
-        # 如果令牌格式不正确或包含无效声明，将会抛出InvalidTokenError异常
-        print("有老六传无效的JWT")
+    except json.decoder.JSONDecodeError:
         return JsonResponse({
-            'code': 400,
-            'error': '管理员令牌无效！Admin token invalid or expired error!'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    except jwt.PyJWTError:
-        print('管理员令牌致命错误！Admin token important error!')
+            'code': 20110,
+            'message': '商品添加失败！参数中涉及JSON字符串的数据非法！'
+        })
     else:
-        token = decode_token.get('admin_token')
-        return JsonResponse({})
+        try:
+            AdminUser.objects.get(account=get_token_re['account'])
+        except AdminUser.DoesNotExist:
+            return JsonResponse({
+                'code': 10107,
+                'error': '超级管理员未注册！'
+            }, status=status.HTTP_403_FORBIDDEN)
+        model_commodity.save()
+        return JsonResponse({
+            'code': 20100,
+            'message': '商品添加成功！'
+        }, status=status.HTTP_201_CREATED)

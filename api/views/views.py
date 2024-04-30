@@ -1,17 +1,13 @@
-import json
 import time
-from datetime import datetime, timedelta
 
 import jwt
 import requests
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from jwt import decode, encode
 from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 from api.models import MainPageImages
 from django.conf import settings
@@ -227,7 +223,7 @@ def test_token(request):
 @csrf_exempt
 def test_token_method(request):
     token = request.POST.get('token')
-    from api.handle_token import handle_token
+    from Handles.handle_token import handle_token
     get_token_re = handle_token(token)
     if get_token_re['judge']:
         return JsonResponse({

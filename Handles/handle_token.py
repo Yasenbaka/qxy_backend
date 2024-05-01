@@ -11,64 +11,76 @@
 """
 
 from django.conf import settings
+from Constants.code_status import CodeStatus
 import jwt
 
 
 jwt_key = settings.SIMPLE_JWT['SIGNING_KEY']
 jwt_alg = settings.SIMPLE_JWT['ALGORITHM']
 
+code_status = CodeStatus()
+
 
 def handle_token(token: str) -> dict:
     if (token is None) or (len(token) == 0) or (token.count('.') != 2):
         return {
             'judge': 0,
-            'message': '你看看你Token传的什么玩意？'
+            'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_VALUE_ERROR[0],
+            'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_VALUE_ERROR[1]
         }
     try:
         decode_token = jwt.decode(token, jwt_key, algorithms=[jwt_alg])
     except jwt.exceptions.ExpiredSignatureError:
         return {
             'judge': 0,
-            'message': '令牌过期！'
+            'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EXPIRED_SIGNATURE_ERROR[0],
+            'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EXPIRED_SIGNATURE_ERROR[1]
         }
     except jwt.exceptions.DecodeError:
         return {
             'judge': 0,
-            'message': '令牌解码失败！'
+            'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_DECODE_ERROR[0],
+            'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_DECODE_ERROR[1]
         }
     except jwt.exceptions.InvalidTokenError:
         return {
             'judge': 0,
-            'message': '令牌非法！'
+            'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_INVALID_ERROR[0],
+            'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_INVALID_ERROR[1]
         }
     except jwt.PyJWTError:
         return {
             'judge': 0,
-            'message': '令牌库致命错误！'
+            'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_UNKNOWN_ERROR[0],
+            'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_UNKNOWN_ERROR[1]
         }
     else:
         if 'rule' not in decode_token and 'type' not in decode_token:
             return {
                 'judge': 1,
-                'message': '令牌合法有效！',
+                'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE[0],
+                'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE[1],
                 'openid': decode_token['openid']
             }
         if 'rule' in decode_token:
             if decode_token['rule'] is None:
                 return {
                     'judge': 0,
-                    'message': '令牌合法，但无法理解令牌规则！'
+                    'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE_BUT_UNKNOWN_RULE[0],
+                    'message': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE_BUT_UNKNOWN_RULE[1]
                 }
             if decode_token['rule'] == 'admin':
                 return {
                     'judge': 1,
-                    'message': '超级管理员令牌合法有效！',
+                    'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE[0],
+                    'message': f'超级管理员{code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE[1]}',
                     'account': decode_token['account']
                 }
             if decode_token['rule'] == 'observer':
                 return {
                     'judge': 1,
-                    'message': '观察者令牌合法有效！',
+                    'code': code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE[0],
+                    'message': f'观察者{code_status.TokenCommunication.TokenDetailsStatus.TOKEN_EFFECTIVE[1]}',
                     'account': decode_token['account']
                 }
         if 'type' in decode_token:

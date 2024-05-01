@@ -2,23 +2,26 @@
 STATUS_SEC_FAILURE_OFFSET: int = 1000
 STATUS_THIRD_FAILURE_OFFSET: int = 10
 
-STATUS_FIR: int
-STATUS_SEC: int
-
 
 class CodeStatus:
     class BasicCommunication:
-        STATUS_FIR = 10000
-
         class FaBBasicCommunication:
+            STATUS_FIR = 10000
             STATUS_SEC = 000
-            ALL_VIEW_ASSETS_SUCCESS = 0 + STATUS_FIR + STATUS_SEC, '获取全部界面资源成功'
-            ALL_VIEW_THEME_ASSETS_SUCCESS = 1 + STATUS_FIR + STATUS_SEC, '获取界面主题资源成功'
-            ALL_VIEW_COLOR_SUCCESS = 2 + STATUS_FIR + STATUS_SEC, '获取界面配色参数成功'
 
-            ALL_VIEW_ASSETS_FAILURE = ALL_VIEW_ASSETS_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '获取全部界面资源失败'
-            ALL_VIEW_THEME_ASSETS_FAILURE = ALL_VIEW_THEME_ASSETS_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '获取界面主题资源失败'
-            ALL_VIEW_COLOR_FAILURE = ALL_VIEW_COLOR_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '获取界面配色参数失败'
+            def success_status(self, code_suffix):
+                return self.STATUS_FIR + self.STATUS_SEC + code_suffix, f'获取{"全部界面资源" if code_suffix == 0 else ("界面主题资源" if code_suffix == 1 else "界面配色参数")}成功'
+
+            def failure_status(self, success_status):
+                return success_status[0] + STATUS_THIRD_FAILURE_OFFSET, f'{success_status[1].replace("成功", "失败")}'
+
+            ALL_VIEW_ASSETS_SUCCESS = success_status(0)
+            ALL_VIEW_THEME_ASSETS_SUCCESS = success_status(1)
+            ALL_VIEW_COLOR_SUCCESS = success_status(2)
+
+            ALL_VIEW_ASSETS_FAILURE = failure_status(ALL_VIEW_ASSETS_SUCCESS)
+            ALL_VIEW_THEME_ASSETS_FAILURE = failure_status(ALL_VIEW_THEME_ASSETS_SUCCESS)
+            ALL_VIEW_COLOR_FAILURE = failure_status(ALL_VIEW_COLOR_SUCCESS)
 
         class UserArchive:
             STATUS_SEC = 100
@@ -59,8 +62,10 @@ class CodeStatus:
             USER_ORDER_CREATE_FAILURE = USER_ORDER_CREATE_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户订单创建失败'
             USER_ORDER_DELETE_FAILURE = USER_ORDER_DELETE_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户订单删除失败'
             USER_PAYMENT_FAILURE = USER_PAYMENT_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户付款失败'
-            USER_ORDER_SEARCH_FAILURE_BUT_NO_ITEM = USER_ORDER_SEARCH_SUCCESS_BUT_NO_ITEM[0] + STATUS_THIRD_FAILURE_OFFSET, '用户订单获取失败，但没有订单'
-            USER_ORDER_SEARCH_FAILURE_HAVE_ITEM = USER_ORDER_SEARCH_SUCCESS_HAVE_ITEM[0] + STATUS_THIRD_FAILURE_OFFSET, '用户订单获取失败，有订单'
+            USER_ORDER_SEARCH_FAILURE_BUT_NO_ITEM = USER_ORDER_SEARCH_SUCCESS_BUT_NO_ITEM[
+                                                        0] + STATUS_THIRD_FAILURE_OFFSET, '用户订单获取失败，但没有订单'
+            USER_ORDER_SEARCH_FAILURE_HAVE_ITEM = USER_ORDER_SEARCH_SUCCESS_HAVE_ITEM[
+                                                      0] + STATUS_THIRD_FAILURE_OFFSET, '用户订单获取失败，有订单'
 
             USER_APPLICATION_REFUND_SUCCESS = 40 + STATUS_FIR + STATUS_SEC, '用户申请退款成功'
             USER_REVOKE_REFUND_SUCCESS = 41 + STATUS_FIR + STATUS_SEC, '用户撤销退款成功'
@@ -70,11 +75,15 @@ class CodeStatus:
             USER_REVOKE_SERVICE_SUCCESS = 45 + STATUS_FIR + STATUS_SEC, '用户撤销售后介入成功'
             USER_CONFIRM_RECEIPT_SUCCESS = 46 + STATUS_FIR + STATUS_SEC, '用户确认收货成功'
 
-            USER_APPLICATION_REFUND_FAILURE = USER_APPLICATION_REFUND_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户申请退款失败'
-            USER_REVOKE_REFUND_FAILURE = USER_REVOKE_REFUND_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET,'用户撤销退款失败'
-            USER_APPLICATION_EXCHANGE_COMMODITY_FAILURE = USER_APPLICATION_EXCHANGE_COMMODITY_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户申请换货失败'
-            USER_REVOKE_EXCHANGE_COMMODITY_FAILURE = USER_REVOKE_EXCHANGE_COMMODITY_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户撤销换货失败'
-            USER_APPLICATION_SERVICE_FAILURE = USER_APPLICATION_SERVICE_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户申请售后介入失败'
+            USER_APPLICATION_REFUND_FAILURE = USER_APPLICATION_REFUND_SUCCESS[
+                                                  0] + STATUS_THIRD_FAILURE_OFFSET, '用户申请退款失败'
+            USER_REVOKE_REFUND_FAILURE = USER_REVOKE_REFUND_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户撤销退款失败'
+            USER_APPLICATION_EXCHANGE_COMMODITY_FAILURE = USER_APPLICATION_EXCHANGE_COMMODITY_SUCCESS[
+                                                              0] + STATUS_THIRD_FAILURE_OFFSET, '用户申请换货失败'
+            USER_REVOKE_EXCHANGE_COMMODITY_FAILURE = USER_REVOKE_EXCHANGE_COMMODITY_SUCCESS[
+                                                         0] + STATUS_THIRD_FAILURE_OFFSET, '用户撤销换货失败'
+            USER_APPLICATION_SERVICE_FAILURE = USER_APPLICATION_SERVICE_SUCCESS[
+                                                   0] + STATUS_THIRD_FAILURE_OFFSET, '用户申请售后介入失败'
             USER_REVOKE_SERVICE_FAILURE = USER_REVOKE_SERVICE_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户撤销售后介入失败'
             USER_CONFIRM_RECEIPT_FAILURE = USER_CONFIRM_RECEIPT_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '用户确认收货失败'
 
@@ -85,7 +94,8 @@ class CodeStatus:
             COM_3DMODEL_GET_SUCCESS = 2 + STATUS_FIR + STATUS_SEC, '获取商品3D模型成功'
 
             COM_DETAILS_GET_FAILURE = COM_DETAILS_GET_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '获取商品详情信息失败'
-            COM_LIST_VIEW_DATA_GET_FAILURE = COM_LIST_VIEW_DATA_GET_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '获取商品列表界面数据失败'
+            COM_LIST_VIEW_DATA_GET_FAILURE = COM_LIST_VIEW_DATA_GET_SUCCESS[
+                                                 0] + STATUS_THIRD_FAILURE_OFFSET, '获取商品列表界面数据失败'
             COM_3DMODEL_GET_FAILURE = COM_3DMODEL_GET_SUCCESS[0] + STATUS_THIRD_FAILURE_OFFSET, '获取商品3D模型失败'
 
     class AdminCommunication:
@@ -128,28 +138,8 @@ class CodeStatus:
             TOKEN_UNKNOWN_ERROR = 5 + STATUS_FIR + STATUS_SEC, '令牌严重致命错误！'
             TOKEN_EFFECTIVE_BUT_UNKNOWN_RULE = 6 + STATUS_FIR + STATUS_SEC, '令牌合法，但无法理解令牌规则！'
             TOKEN_MISSING_NECESSARY_VALUE = 7 + STATUS_FIR + STATUS_SEC, '缺少制作令牌的必要值！'
+            TOKEN_DESTROY = 8 + STATUS_FIR + STATUS_SEC, '令牌危险！合法但应该销毁！'
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+cs = CodeStatus().BasicCommunication().FaBBasicCommunication()
+print(cs.ALL_VIEW_THEME_ASSETS_FAILURE)

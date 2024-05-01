@@ -64,16 +64,16 @@ def login_user(request):
     openid = wechat_data.get('openid')
     # if not openid:
     #     return Response({'code': 400, 'error': '从微信服务器获取openID失败！客户端问题？'}, status=status.HTTP_400_BAD_REQUEST)
-    openid = '123'
+    openid = '12334'
     print('openid', openid)
     token_header = {'typ': 'JWT', 'alg': get_jwt_alg}
-    token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime}
+    token_payload = {'openid': openid, 'exp': int(time.time()) + get_access_token_lifetime, 'rule': 'customer', 'type': 'access_token'}
     access_token = jwt.encode(headers=token_header, payload=token_payload, key=get_jwt_key, algorithm=get_jwt_alg)
     refresh_token = jwt.encode(headers=token_header, payload={
-        # 'type': 'refresh_token',
+        'type': 'refresh_token',
         'access_token': access_token,
         'exp': int(time.time()) + get_refresh_token_lifetime,
-        'rule': 'admin',
+        'rule': 'customer',
         'account': 10086
     }, key=get_jwt_key, algorithm=get_jwt_alg)
     return JsonResponse({

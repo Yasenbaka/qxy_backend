@@ -23,6 +23,9 @@ class CodeStatus:
             ALL_VIEW_THEME_ASSETS_FAILURE = failure_status(ALL_VIEW_THEME_ASSETS_SUCCESS)
             ALL_VIEW_COLOR_FAILURE = failure_status(ALL_VIEW_COLOR_SUCCESS)
 
+            MISSING_KEY = 3 + STATUS_FIR + STATUS_SEC, '缺少必要的键'
+            MISSING_VALUE = 4 + STATUS_FIR + STATUS_SEC, '缺少必要的值或值的类型不正确'
+
         class UserArchive:
             STATUS_FIR = 10000
             STATUS_SEC = 100
@@ -55,6 +58,7 @@ class CodeStatus:
             USER_PAYMENT_SUCCESS = 26 + STATUS_FIR + STATUS_SEC, '用户付款成功'
             USER_ORDER_SEARCH_SUCCESS_BUT_NO_ITEM = 27 + STATUS_FIR + STATUS_SEC, '用户订单获取成功，但没有订单'
             USER_ORDER_SEARCH_SUCCESS_HAVE_ITEM = 28 + STATUS_FIR + STATUS_SEC, '用户订单获取成功，有订单'
+            USER_CART_SUCCESS_FOUND = 29 + STATUS_FIR + STATUS_SEC, '用户购物车成功检索'
 
             USER_COUPON_FAILURE_GET = failure_status(USER_COUPON_SUCCESS_GET)
             USER_COUPON_FAILURE_DELETE = failure_status(USER_COUPON_SUCCESS_DELETE)
@@ -65,6 +69,7 @@ class CodeStatus:
             USER_PAYMENT_FAILURE = failure_status(USER_PAYMENT_SUCCESS)
             USER_ORDER_SEARCH_FAILURE_BUT_NO_ITEM = failure_status(USER_ORDER_SEARCH_SUCCESS_BUT_NO_ITEM)
             USER_ORDER_SEARCH_FAILURE_HAVE_ITEM = failure_status(USER_ORDER_SEARCH_SUCCESS_HAVE_ITEM)
+            USER_CART_FAILURE_FOUND = failure_status(USER_CART_SUCCESS_FOUND)
 
             USER_APPLICATION_REFUND_SUCCESS = 40 + STATUS_FIR + STATUS_SEC, '用户申请退款成功'
             USER_REVOKE_REFUND_SUCCESS = 41 + STATUS_FIR + STATUS_SEC, '用户撤销退款成功'
@@ -134,6 +139,3 @@ class CodeStatus:
             TOKEN_MISSING_NECESSARY_VALUE = 7 + STATUS_FIR + STATUS_SEC, '缺少制作令牌的必要值！'
             TOKEN_DESTROY = 8 + STATUS_FIR + STATUS_SEC, '令牌危险！合法但应该销毁！'
             TOKEN_NO_USE = 9 + STATUS_FIR + STATUS_SEC, '该令牌不适配当前使用场景！'
-
-
-print(CodeStatus().BasicCommunication().UserArchive().USER_ARCHIVE_LOGIN_FAILURE)

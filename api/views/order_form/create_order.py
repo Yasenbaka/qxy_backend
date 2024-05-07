@@ -1,70 +1,50 @@
-import random
 import time
+import hashlib
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from rest_framework import status
 
-from Handles.handle_token import handle_token
-from api.models import OrderForm
+from Centralized_Processing.user_login import centralized_processing_user_login
+from Constants.code_status import CodeStatus
+from Handles.handle_login import handle_customer
 from wx_users.models import WxUsers
 
 
 @require_http_methods(['POST'])
 @csrf_exempt
 def create_order(request):
-    get_token_re = handle_token(request.headers.get('Authorization'))
-    if not get_token_re['judge']:
-        return JsonResponse({
-            'code': 10112,
-            'error': get_token_re['message']
-        }, status=status.HTTP_403_FORBIDDEN)
-    openid = get_token_re['openid']
-    try:
-        WxUsers.objects.get(openid=openid)
-    except WxUsers.DoesNotExist:
-        return JsonResponse({
-            'code': 10117,
-            'error': '用户未注册'
-        }, status=status.HTTP_403_FORBIDDEN)
-    try:
-        OrderForm.objects.get(openid=openid)
-    except OrderForm.DoesNotExist:
-        order_create = OrderForm.objects.create(openid=openid,
-                                                ongoing_order={'data': []},
-                                                service_order={'data': []},
-                                                closed_order={'data': []})
-        order_create.save()
-    try:
-        openid_order = OrderForm.objects.get(openid=openid)
-    except OrderForm.DoesNotExist:
-        return JsonResponse({
-            'code': 10134,
-            'error': '创建订单失败！这是服务器出现问题！'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    ongoing_order = openid_order.ongoing_order
+    get_login = centralized_processing_user_login(handle_customer(
+        'access_token', token=request.headers.get('Authorization')
+    ))
+    if not isinstance(get_login, str):
+        return get_login
+    openid = get_login
+    user = WxUsers.objects.get(openid=openid)
+    order_unique_id = f'{int(time.time() * 1000)}{int(hashlib.sha256(openid.encode()).hexdigest()[:14], 16)}'
     try:
         order_details = {
-            'order_unique_id': int(time.time()) + random.randint(1, 10000),
+            'order_unique_id': order_unique_id,
             'commodity': int(request.POST['commodity']),
             'count': int(request.POST['count']),
             'price': float(request.POST['price']),
-            'coupon': request.POST['coupon']
+            'coupon': request.POST['coupon'],
+            'create_time': int(time.time()),
         }
     except KeyError:
         return JsonResponse({
-            'code': 10134,
-            'error': '创建订单失败！缺少必要的记录参数！'
+            'code': CodeStatus().BasicCommunication().UserArchive().USER_ORDER_CREATE_FAILURE[0],
+            'error': f'{CodeStatus().BasicCommunication().UserArchive().USER_ORDER_CREATE_FAILURE[1]}！缺少必要的记录参数！'
         })
     except ValueError:
         return JsonResponse({
-            'code': 10134,
-            'error': '创建订单失败！传值的参数类型不合法！'
+            'code': CodeStatus().BasicCommunication().UserArchive().USER_ORDER_CREATE_FAILURE[0],
+            'error': f'{CodeStatus().BasicCommunication().UserArchive().USER_ORDER_CREATE_FAILURE[1]}！传值的参数类型不合法！'
         })
-    ongoing_order['data'].append(order_details)
-    openid_order.save()
+    user.order['pending'][order_unique_id] = order_details
+    user.save()
     return JsonResponse({
-        'code': 10124,
-        'message': '订单创建成功！'
+        'code': CodeStatus().BasicCommunication().UserArchive().USER_ORDER_CREATE_SUCCESS[0],
+        'message': CodeStatus().BasicCommunication().UserArchive().USER_ORDER_CREATE_SUCCESS[1]
     }, status=status.HTTP_201_CREATED)

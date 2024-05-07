@@ -11,7 +11,7 @@ from wx_users.models import WxUsers
 user_archive_status = Constants.code_status.CodeStatus().BasicCommunication().UserArchive()
 
 
-@require_http_methods(['POST'])
+@require_http_methods(['GET'])
 @csrf_exempt
 def get_cart(request):
     get_login = centralized_processing_user_login(handle_customer(
@@ -24,5 +24,5 @@ def get_cart(request):
     return JsonResponse({
         'code': user_archive_status.USER_CART_SUCCESS_FOUND[0],
         'message': user_archive_status.USER_CART_SUCCESS_FOUND[1],
-        'data': user.save()
+        'data': user.cart
     }, status=status.HTTP_200_OK)

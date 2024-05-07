@@ -20,7 +20,7 @@ def delete_cart(request):
     openid = get_login
     user = WxUsers.objects.get(openid=openid)
     try:
-        com_unique_id = request.POST.get('com_unique_id')
+        com_unique_id = request.POST['com_unique_id']
     except KeyError:
         return JsonResponse({
             'code': Constants.code_status.CodeStatus().BasicCommunication().FaBBasicCommunication().MISSING_KEY[0],

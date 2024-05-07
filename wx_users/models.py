@@ -10,6 +10,7 @@ def get_default_order():
         'ongoing': {},
         'servicing': {},
         'completed': {},
+        'pending': {}
     }
 
 

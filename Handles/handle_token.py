@@ -3,11 +3,6 @@
     在handle_token方法中，提供了基础的处理逻辑和匹配逻辑。
 使用时，你需要在任意Django应用中引入：
     from Handle.handle_token import *
-创始于：2024/04/25 张玺龙 技术开发部 部门经理
-修改于：
-    2024/04/26 张玺龙 技术开发部 部门经理
-    2024/04/27 张玺龙 技术开发部 部门经理
-    2024/04/29 张玺龙 技术开发部 部门经理
 """
 
 from django.conf import settings

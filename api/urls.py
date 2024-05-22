@@ -25,9 +25,9 @@ urlpatterns = [
     path('v1/user/get_cart', get_cart.get_cart),
 
     # 订单
-    path('v1/create_order', create_order.create_order),
-    path('v1/get_order', get_order.get_order),
-    path('v1/delete_order', delete_order.delete_order),
-    path('v1/service_order', service_order.change_order_service),
+    path('v1/user/create_order', create_order.create_order),
+    path('v1/user/get_order', get_order.get_order),
+    path('v1/user/delete_order', delete_order.delete_order),
+    path('v1/user/service_order', service_order.change_order_service),
 
 ]

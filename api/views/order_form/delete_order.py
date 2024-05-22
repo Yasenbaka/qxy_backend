@@ -6,8 +6,6 @@ from rest_framework import status
 from Centralized_Processing.user_login import centralized_processing_user_login
 from Constants.code_status import CodeStatus
 from Handles.handle_login import handle_customer
-from Handles.handle_token import handle_token
-from api.models import OrderForm
 from wx_users.models import WxUsers
 
 
